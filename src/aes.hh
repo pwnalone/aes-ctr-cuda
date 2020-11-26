@@ -35,7 +35,7 @@
 #endif
 
 
-namespace aes {
+namespace crypto {
 
 class Aes128
 {
@@ -83,7 +83,7 @@ private:
     uint32_t rks_[60];
 };
 
-} // namespace aes
+} // namespace crypto
 
 
 #endif // ! AES_HH_

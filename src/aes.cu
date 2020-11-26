@@ -24,7 +24,7 @@
 #include <cstdint>
 
 
-namespace aes {
+namespace crypto {
 
 namespace { // anonymous
 
@@ -561,4 +561,4 @@ Aes256::~Aes256() noexcept
     std::fill_n(const_cast<uint32_t volatile*>(rks_), 60, 0U);
 }
 
-} // namespace aes
+} // namespace crypto

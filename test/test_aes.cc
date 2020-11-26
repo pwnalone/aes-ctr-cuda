@@ -27,7 +27,9 @@
 #include <gtest/gtest.h>
 
 
-using namespace aes;
+using crypto::Aes128;
+using crypto::Aes192;
+using crypto::Aes256;
 
 
 TEST(AesExpandKeyTest, Aes128) {
