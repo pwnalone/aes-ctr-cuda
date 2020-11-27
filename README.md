@@ -30,23 +30,34 @@ nvcc     -o libaescuda.so src/aes.cu.o    --compiler-options '-fPIC' --shared
 
 # Build the tests.
 nvcc -dc -o test/test_aes.cc.o      test/test_aes.cc       -Isrc
+nvcc -dc -o test/test_fsc.cc.o      test/test_fsc.cc       -Isrc
+nvcc -dc -o test/test_ctr.cc.o      test/test_ctr.cc       -Isrc
 nvcc -dc -o test/test_aes_cuda.cu.o test/test_aes_cuda.cu  -Isrc
+nvcc -dc -o test/test_fsc_cuda.cu.o test/test_fsc_cuda.cu  -Isrc
+nvcc -dc -o test/test_ctr_cuda.cu.o test/test_ctr_cuda.cu  -Isrc
 nvcc     -o test/test_aes      test/test_aes.cc.o      -L. -laescuda -lgtest -lgtest_main  # CPU-bound tests
+nvcc     -o test/test_fsc      test/test_fsc.cc.o      -L.           -lgtest -lgtest_main
+nvcc     -o test/test_ctr      test/test_ctr.cc.o      -L. -laescuda -lgtest -lgtest_main
 nvcc     -o test/test_aes_cuda test/test_aes_cuda.cu.o -L. -laescuda -lgtest -lgtest_main  # GPU-bound tests
+nvcc     -o test/test_fsc_cuda test/test_fsc_cuda.cc.o -L.           -lgtest -lgtest_main
+nvcc     -o test/test_ctr_cuda test/test_ctr_cuda.cu.o -L. -laescuda -lgtest -lgtest_main
 ```
 
 ### Test
 
-Run the CPU-bound unit tests. These tests ensure that the implementations of AES key expansion and
-single-block encryption are correct.
+Run all the unit tests at once using CMake.
+
+```bash
+cmake --build build --target test
+```
+
+Or run them individually. This will provide more detailed output.
 
 ```bash
 build/test/test_aes
-```
-
-Run the GPU-bound unit tests. These tests ensure that AES encryption works as expected on the GPU.
-AES key expansion is not tested, since it is a CPU-only operation.
-
-```bash
 build/test/test_aes_cuda
+build/test/test_fsc
+build/test/test_fsc_cuda
+build/test/test_ctr
+build/test/test_ctr_cuda
 ```
