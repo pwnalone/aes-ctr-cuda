@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2020 Zakaria Essadaoui, Joshua Inscoe, Alexandra Livadas, Angel Ortiz-Regules
+// Copyright (c) 2018 Zakaria Essadaoui, Joshua Inscoe, Alexandra Livadas, Angel Ortiz-Regules
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 // associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -18,12 +18,15 @@
 //
 
 
-#ifndef AES_HH_
-#define AES_HH_
+#ifndef CTR_HH_
+#define CTR_HH_
 
 
 #include <algorithm>
-#include <cstdint>
+
+#include "aes.hh"
+#include "fsc.hh"
+#include "util.hh"
 
 
 #if defined(__CUDACC__) && defined(__CUDA_ARCH__)
@@ -37,62 +40,43 @@
 
 namespace crypto {
 
-class Aes128
+
+template <typename BlockCipherType>
+class CtrMode
 {
 public:
-    static constexpr size_t blk_size = 16;
-    static constexpr size_t key_size = 16;
+    using cipher_type = BlockCipherType;
+    static constexpr size_t blk_size = BlockCipherType::blk_size;
+    static constexpr size_t key_size = BlockCipherType::key_size;
 
-    Aes128(unsigned char const key[16]) noexcept;
-    CUDA_CALLABLE void encrypt(unsigned char* block) const noexcept;
+    CtrMode(unsigned char const key[key_size]) noexcept : cipher_(key), nonce_() { }
 
-    ~Aes128() noexcept;
+    CtrMode(unsigned char const key[key_size], unsigned char const nonce[blk_size]) noexcept
+        : cipher_(key)
+    {
+        std::copy_n(nonce, blk_size, nonce_);
+    }
 
-#ifdef AES_DEBUG_
-    void getkeys(uint32_t rks[44]) const noexcept { std::copy_n(rks_, 44, rks); }
-#endif
-
-private:
-    uint32_t rks_[44];
-};
-
-class Aes192
-{
-public:
-    static constexpr size_t blk_size = 16;
-    static constexpr size_t key_size = 24;
-
-    Aes192(unsigned char const key[24]) noexcept;
-    CUDA_CALLABLE void encrypt(unsigned char* block) const noexcept;
-    ~Aes192() noexcept;
-
-#ifdef AES_DEBUG_
-    void getkeys(uint32_t rks[52]) const noexcept { std::copy_n(rks_, 52, rks); }
-#endif
+    CUDA_CALLABLE void encrypt(unsigned char* data, size_t size, size_t init) const noexcept
+    {
+        FixedSizeCounter<blk_size> ctr = FixedSizeCounter<blk_size>(nonce_, blk_size) + init;
+        for (auto ptr = data; size > 0; size -= util::min(blk_size, size), ptr += blk_size) {
+            FixedSizeCounter<blk_size> tmp = ctr;
+            cipher_.encrypt(tmp.data);
+            for (size_t i = 0; i < util::min(blk_size, size); ++i) {
+                ptr[i] ^= tmp.data[i];
+            }
+            ++ctr;
+        }
+    }
 
 private:
-    uint32_t rks_[52];
+    cipher_type cipher_;
+    unsigned char nonce_[blk_size];
 };
 
-class Aes256
-{
-public:
-    static constexpr size_t blk_size = 16;
-    static constexpr size_t key_size = 32;
-
-    Aes256(unsigned char const key[32]) noexcept;
-    CUDA_CALLABLE void encrypt(unsigned char* block) const noexcept;
-    ~Aes256() noexcept;
-
-#ifdef AES_DEBUG_
-    void getkeys(uint32_t rks[60]) const noexcept { std::copy_n(rks_, 60, rks); }
-#endif
-
-private:
-    uint32_t rks_[60];
-};
 
 } // namespace crypto
 
 
-#endif // ! AES_HH_
+#endif // ! CTR_HH_

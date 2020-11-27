@@ -91,6 +91,19 @@ CUDA_CALLABLE inline void to_bytes<uint64_t, 8>(unsigned char* bytes, uint64_t v
 }
 
 
+template <typename T>
+CUDA_CALLABLE inline T min(T a, T b)
+{
+    return a < b ? a : b;
+}
+
+template <typename T>
+CUDA_CALLABLE inline T max(T a, T b)
+{
+    return a > b ? a : b;
+}
+
+
 } // namespace util
 } // namespace crypto
 
