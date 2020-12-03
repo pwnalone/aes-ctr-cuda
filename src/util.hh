@@ -22,8 +22,61 @@
 #define UTIL_HH_
 
 
+#include <algorithm>
+#include <climits>
 #include <cstdint>
+#include <fstream>
+#include <functional>
+#include <iterator>
+#include <random>
+#include <string>
 #include <type_traits>
+
+
+namespace { // anonymous
+
+void set_file_contents(char const* filepath, std::string const& bytes)
+{
+    std::ofstream ofs { };
+    ofs.exceptions(std::ofstream::failbit);
+    ofs.open(filepath, std::ofstream::out | std::ofstream::binary);
+
+    ofs.write(&bytes[0], bytes.size());
+
+    ofs.close();
+}
+
+void get_file_contents(std::string& bytes, char const* filepath, size_t alloc_extra = 0U)
+{
+    std::ifstream ifs { };
+    ifs.exceptions(std::ifstream::failbit);
+    ifs.open(filepath, std::ifstream::in | std::ifstream::binary);
+
+    ifs.seekg(0, std::ifstream::end);
+    size_t size = ifs.tellg();
+    bytes.resize(size + alloc_extra);
+    bytes.resize(size);
+    ifs.seekg(0, std::ifstream::beg);
+
+    ifs.read(&bytes[0], size);
+
+    ifs.close();
+}
+
+
+template <typename ForwardIter>
+void get_random_bytes(ForwardIter begin, ForwardIter end)
+{
+    using value_type = typename std::iterator_traits<ForwardIter>::value_type;
+    static_assert(std::is_unsigned<value_type>::value, "underlying type must be unsigned integral");
+
+    constexpr size_t value_bits = sizeof(value_type) * CHAR_BIT;
+    static std::default_random_engine const engine { std::random_device()() };
+    std::independent_bits_engine<std::default_random_engine, value_bits, value_type> ibe { engine };
+    std::generate(begin, end, std::ref(ibe));
+}
+
+} // anonymous namespace
 
 
 #if defined(__CUDACC__) && defined(__CUDA_ARCH__)
