@@ -25,6 +25,10 @@
 #include <cstring>
 #include <iostream>
 
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+#include <cstdlib>
+#endif
+
 #include <getopt.h>
 #include <unistd.h>
 
@@ -48,6 +52,13 @@
 #endif
 
 
+#define XSTR( x )  # x
+#define  STR( x )  XSTR( x )
+
+#define NB_DEFAULT 1024
+#define NT_DEFAULT 64
+
+
 namespace { // anonymous
 
 constexpr char const* const help_string =
@@ -64,6 +75,10 @@ constexpr char const* const help_string =
     "  --128              Encrypt/decrypt the file using a 128-bit AES cipher.\n"
     "  --192              Encrypt/decrypt the file using a 192-bit AES cipher.\n"
     "  --256              Encrypt/decrypt the file using a 256-bit AES cipher [default].\n"
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+    "  --nb NB            Specify the number of blocks [default: " STR(NB_DEFAULT) "].\n"
+    "  --nt NT            Specify the number of threads per block [default: " STR(NT_DEFAULT) "].\n"
+#endif
     ;
 
 
@@ -135,10 +150,18 @@ int Config::parse(int argc, char* const argv[]) noexcept
             {     "128",       no_argument, nullptr, 128 },
             {     "192",       no_argument, nullptr, 192 },
             {     "256",       no_argument, nullptr, 256 },
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+            {      "nb", required_argument, nullptr, 257 },
+            {      "nt", required_argument, nullptr, 258 },
+#endif
             {   nullptr,                 0, nullptr,   0 }
         };
 
         static constexpr char const* ex_key = "00112233445566778899aabbccddeeff";
+
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+        char* endptr = nullptr;
+#endif
 
         int c = getopt_long(argc, argv, ":hVedk:", long_options, nullptr);
         if (c < 0) {
@@ -197,6 +220,33 @@ int Config::parse(int argc, char* const argv[]) noexcept
             key_size = c;
             break;
 
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+        case 257:
+            if (nb) {
+                std::cerr << ENC_PROGRAM ": Option --nb may only be specified one time\n";
+                return -2;
+            }
+            errno = 0;
+            nb = std::strtoul(optarg, &endptr, 10);
+            if (errno || *endptr || nb < 1) {
+                std::cerr << ENC_PROGRAM ": Option --nb argument must be a positive integer\n";
+                return -2;
+            }
+            break;
+        case 258:
+            if (nt) {
+                std::cerr << ENC_PROGRAM ": Option --nt may only be specified one time\n";
+                return -2;
+            }
+            errno = 0;
+            nt = std::strtoul(optarg, &endptr, 10);
+            if (errno || *endptr || nt < 1) {
+                std::cerr << ENC_PROGRAM ": Option --nt argument must be a positive integer\n";
+                return -2;
+            }
+            break;
+#endif
+
         case ':':
             std::cerr << ENC_PROGRAM ": Missing option \'"  << argv[optind - 1] << "\' argument\n";
             return -2;
@@ -230,6 +280,15 @@ int Config::parse(int argc, char* const argv[]) noexcept
         std::cerr << ENC_PROGRAM ": AES key must be appropriately sized\n";
         return -2;
     }
+
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+    if (!nb) {
+        nb = NB_DEFAULT;
+    }
+    if (!nt) {
+        nt = NT_DEFAULT;
+    }
+#endif
 
     if (argc - optind < 1) {
         std::cerr << ENC_PROGRAM ": Missing argument \'FILE\'\n";

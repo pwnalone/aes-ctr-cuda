@@ -141,15 +141,22 @@ int aes_ctr_encrypt(
     // Perform AES encryption using CTR mode for the proper key size.
     timedelta = timer.time();
     switch (config.key_size) {
-    case 128: encrypt<<<1024, 1024>>>(aes128ctr_d, data_d, size); break;
-    case 192: encrypt<<<1024, 1024>>>(aes192ctr_d, data_d, size); break;
-    case 256: encrypt<<<1024, 1024>>>(aes256ctr_d, data_d, size); break;
+    case 128: encrypt<<<config.nb, config.nt>>>(aes128ctr_d, data_d, size); break;
+    case 192: encrypt<<<config.nb, config.nt>>>(aes192ctr_d, data_d, size); break;
+    case 256: encrypt<<<config.nb, config.nt>>>(aes256ctr_d, data_d, size); break;
     default:
         assert("Unsupported AES key size" && false);
         goto _fail;
     }
     cudaDeviceSynchronize();
     timedelta = timer.time();
+
+    // Check that no errors occurred while executing the CUDA kernel.
+    deverror = cudaGetLastError();
+    if (deverror) {
+        std::cerr << SRCLOC() << "[!] error: " << cudaGetErrorString(deverror) << "\n";
+        goto _fail;
+    }
 
     std::cout << "[*] AES encrypt() CUDA kernel elapsed time: " << timedelta << " microseconds\n";
 

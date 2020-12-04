@@ -31,7 +31,12 @@ struct Config
 
     enum class Operation { kUnknown = 0, kEncrypt, kDecrypt };
 
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+    Config() noexcept
+        : filepath(nullptr), key(), key_size(0U), op(Operation::kUnknown), nb(0U), nt(0U) { }
+#else
     Config() noexcept : filepath(nullptr), key(), key_size(0U), op(Operation::kUnknown) { }
+#endif
 
     int parse(int argc, char* const argv[]) noexcept;
 
@@ -39,6 +44,10 @@ struct Config
     UString     key;
     size_t      key_size;
     Operation   op;
+#if defined(RT_PARALLEL) && RT_PARALLEL != 0
+    size_t      nb;
+    size_t      nt;
+#endif
 };
 
 
