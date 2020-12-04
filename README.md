@@ -73,6 +73,25 @@ Options:
   --256              Encrypt/decrypt the file using a 256-bit AES cipher [default].
 ```
 
+```bash
+$ ./encrypt-par
+Usage: encrypt-par [options] [FILE]
+
+  Encrypt/decrypt a given file on the GPU using AES with the CTR mode of operation.
+
+Options:
+  -h, --help         Display this help menu and exit.
+  -V, --version      Display the version and exit.
+  -e, --encrypt      Encrypt the file.
+  -d, --decrypt      Decrypt the file.
+  -k KEY, --key KEY  Specify the key to encrypt/decrypt the file.
+  --128              Encrypt/decrypt the file using a 128-bit AES cipher.
+  --192              Encrypt/decrypt the file using a 192-bit AES cipher.
+  --256              Encrypt/decrypt the file using a 256-bit AES cipher [default].
+  --nb NB            Specify the number of blocks [default: 1024].
+  --nt NT            Specify the number of threads per block [default: 64].
+```
+
 Encrypt a given file, using the default cipher (AES-256-CTR) and a randomly-generated key.
 
 ```bash
