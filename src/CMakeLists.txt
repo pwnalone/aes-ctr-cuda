@@ -8,8 +8,18 @@ add_library(${SHARED_LIBRARY} SHARED aes.cu)
 add_executable(encrypt-seq enc.cu config.cc)
 add_executable(encrypt-par enc.cu config.cc)
 
-set_property(TARGET encrypt-seq APPEND PROPERTY COMPILE_DEFINITIONS RT_PARALLEL=0)
-set_property(TARGET encrypt-par APPEND PROPERTY COMPILE_DEFINITIONS RT_PARALLEL=1)
+set_property(
+    TARGET encrypt-seq
+    APPEND PROPERTY COMPILE_DEFINITIONS
+    ENC_VERSION=${PROJECT_VERSION}
+    RT_PARALLEL=0
+    )
+set_property(
+    TARGET encrypt-par
+    APPEND PROPERTY COMPILE_DEFINITIONS
+    ENC_VERSION=${PROJECT_VERSION}
+    RT_PARALLEL=1
+    )
 
 set_target_properties(
     ${STATIC_LIBRARY} ${SHARED_LIBRARY} encrypt-seq encrypt-par

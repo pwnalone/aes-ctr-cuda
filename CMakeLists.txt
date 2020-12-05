@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-project(AesCudaCtr LANGUAGES CXX CUDA)
+project(AesCudaCtr VERSION 1.0.0 LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
 

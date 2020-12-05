@@ -42,7 +42,7 @@
 #endif
 
 #ifndef ENC_VERSION
-#define ENC_VERSION "ersion unknown" // This is not a typo.
+#define ENC_VERSION ersion unknown // This is not a typo.
 #endif
 
 #if defined(RT_PARALLEL) && RT_PARALLEL != 0
@@ -89,7 +89,7 @@ void help(std::ostream& os)
 
 void vers(std::ostream& os)
 {
-    os << ENC_PROGRAM " v" ENC_VERSION "\n";
+    os << ENC_PROGRAM " v" STR(ENC_VERSION) "\n";
 }
 
 
